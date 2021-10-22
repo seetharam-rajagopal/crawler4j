@@ -28,6 +28,8 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.OperationStatus;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import edu.uci.ics.crawler4j.redis.CustomDatabase;
+import edu.uci.ics.crawler4j.redis.CustomDatabase.DB;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -86,7 +88,9 @@ public class DocIDServer {
             }
 
             if ((result == OperationStatus.SUCCESS) && (value.getData().length > 0)) {
-                return Util.byteArray2Int(value.getData());
+                compareAndLog("getDocId", String.valueOf(Util.byteArray2Int(value.getData())), String.valueOf(Util.byteArray2Int(CustomDatabase.get(DB.docIDsDB, url.getBytes()))));
+                return Util.byteArray2Int(CustomDatabase.get(DB.docIDsDB, url.getBytes()));
+//                return Util.byteArray2Int(value.getData());
             }
 
             return -1;
@@ -105,6 +109,7 @@ public class DocIDServer {
                 ++lastDocID;
                 docIDsDB.put(null, new DatabaseEntry(url.getBytes()),
                              new DatabaseEntry(Util.int2ByteArray(lastDocID)));
+                CustomDatabase.set(DB.docIDsDB, url.getBytes(), Util.int2ByteArray(lastDocID));
                 return lastDocID;
             } catch (RuntimeException e) {
                 if (config.isHaltOnError()) {
@@ -135,6 +140,7 @@ public class DocIDServer {
 
             docIDsDB.put(null, new DatabaseEntry(url.getBytes()),
                          new DatabaseEntry(Util.int2ByteArray(docId)));
+            CustomDatabase.set(DB.docIDsDB, url.getBytes(), Util.int2ByteArray(docId));
             lastDocID = docId;
         }
     }
@@ -145,6 +151,7 @@ public class DocIDServer {
 
     public final int getDocCount() {
         try {
+            compareAndLog("getDocCount", String.valueOf(docIDsDB.count()), String.valueOf(CustomDatabase.count(DB.docIDsDB)));
             return (int) docIDsDB.count();
         } catch (DatabaseException e) {
             logger.error("Exception thrown while getting DOC Count", e);
@@ -158,5 +165,10 @@ public class DocIDServer {
         } catch (DatabaseException e) {
             logger.error("Exception thrown while closing DocIDServer", e);
         }
+    }
+
+    private void compareAndLog(String methodName, String expected, String actual) {
+        if (!expected.equals(actual))
+            logger.info("cmp_failed " + methodName + ' ' + expected + " != " + actual);
     }
 }

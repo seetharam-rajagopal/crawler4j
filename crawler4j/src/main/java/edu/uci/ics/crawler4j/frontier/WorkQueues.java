@@ -28,6 +28,8 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
+import edu.uci.ics.crawler4j.redis.CustomDatabase;
+import edu.uci.ics.crawler4j.redis.CustomDatabase.DB;
 import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.Util;
 
@@ -133,6 +135,7 @@ public class WorkQueues {
         webURLBinding.objectToEntry(url, value);
         Transaction txn = beginTransaction();
         urlsDB.put(txn, getDatabaseEntryKey(url), value);
+        CustomDatabase.set(DB.urlsDB, url.getURL().getBytes(), value.getData());
         commit(txn);
     }
 

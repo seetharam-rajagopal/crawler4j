@@ -33,6 +33,8 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import edu.uci.ics.crawler4j.redis.CustomDatabase;
+import edu.uci.ics.crawler4j.redis.CustomDatabase.DB;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -110,6 +112,7 @@ public class Counters {
                     Transaction txn = env.beginTransaction(null, null);
                     statisticsDB.put(txn, new DatabaseEntry(name.getBytes()),
                                      new DatabaseEntry(Util.long2ByteArray(value)));
+                    CustomDatabase.set(DB.statisticsDB, name.getBytes(), Util.long2ByteArray(value));
                     txn.commit();
                 }
             } catch (RuntimeException e) {

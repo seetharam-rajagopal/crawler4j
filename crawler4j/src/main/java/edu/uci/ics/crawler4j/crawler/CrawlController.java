@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,8 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
 import edu.uci.ics.crawler4j.parser.Parser;
+import edu.uci.ics.crawler4j.redis.CustomDatabase;
+import edu.uci.ics.crawler4j.redis.CustomDatabase.DB;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import edu.uci.ics.crawler4j.url.TLDList;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
@@ -134,6 +137,7 @@ public class CrawlController {
         }
 
         if (!resumable) {
+            CustomDatabase.flushDbList(Arrays.asList(DB.docIDsDB, DB.statisticsDB, DB.urlsDB));
             IO.deleteFolderContents(envHome);
             logger.info("Deleted contents of: " + envHome +
                         " ( as you have configured resumable crawling to false )");
